@@ -17,6 +17,8 @@ bool isSymbol(char symbol);
 bool isStringSymbol(char symbol, char nextSymbol);
 string removeComment(string line);
 bool replace(std::string& str, const std::string& from, const std::string& to);
+string cleanWhiteSpaces(string line);
+
 int main(){
     ifstream infile("finalv1.txt");
     string line, temp, sanitizedLine;
@@ -34,8 +36,8 @@ int main(){
                 line = "";
             else{
     
-           line = removeComment(line);
-             
+                line = removeComment(line);
+                line = cleanWhiteSpaces(line);
                 
                
                 
@@ -113,6 +115,23 @@ string removeComment(string line){
 //    }
     return line;
 }
+
+string cleanWhiteSpaces(string line){
+    string cleanLine = "";
+    
+    for(int i =0; i < line.size();i++){
+        cleanLine += line[i];
+        if(i < line.size()-1){
+            if(isalpha(line[i])&& line[i+1] == '('){
+                cleanLine+=" ";
+            }
+            else if(line[i] == ')' && line[i+1] != ' '){
+                cleanLine+=" ";
+            }
+        }
+    }
+    return cleanLine;
+}
 string fixSymbol(string word, string symbol){
     string arg,firstname, lastname,finalWord;
     
@@ -188,7 +207,6 @@ bool isSymbol(char symbol){
 bool hasSymbol(string word, vector<string>& symbol){
     if(word.find("+") != std::string::npos){
         symbol.push_back("+");
-        
     }
     if(word.find("=") != std::string::npos){
         symbol.push_back("=");
