@@ -8,13 +8,15 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 string fixSymbol(string word, string symbol);
 bool hasSymbol(string word, vector<string>& symbol);
 bool isSymbol(char symbol);
 bool isStringSymbol(char symbol, char nextSymbol);
-
+string removeComment(string line);
+bool replace(std::string& str, const std::string& from, const std::string& to);
 int main(){
     ifstream infile("finalv1.txt");
     string line, temp, sanitizedLine;
@@ -22,11 +24,26 @@ int main(){
     stringstream word;
     vector<string>lines;
     
+    
     while(!infile.eof()){
         
         getline(infile,line);
-        line = line.substr(0, line.find("//"));
-        if(line != ""){
+        line.substr(0, line.find("//"));
+        if (line.find("//") !=std::string::npos){
+            if(line.find(";") ==std::string::npos)
+                line = "";
+            else{
+    
+           line = removeComment(line);
+             
+                
+               
+                
+            }
+            
+        }
+        
+        if(line != "" && line[1] != 'n' && line[0] != '\\'){
             stringstream word(line);
             while(word >> temp){
                 if(hasSymbol(temp,symbol)){
@@ -49,6 +66,52 @@ int main(){
     outfile << sanitizedLine;
     outfile.close();
     return 0;
+}
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
+string removeComment(string line){
+    int count = 0;
+    int initIndex = -1;
+    bool comm = false;
+    string comment = "";
+    for(int i=0;i<line.size();i++){
+//        if(line[i] == '/'){
+//            count++;
+//        }
+        if(comm)
+            comment += line[i];
+        if(i < line.size()-1){
+            if(line[i] == '/' && line[i+1]=='/'){
+                if(comm)
+                    comm = false;
+                else
+                    comm = true;
+                comment += line[i];
+            }
+        }
+    }
+    if(comment != ""){
+//        size_t index = 0;
+//        index = line.find(comment, index);
+//        line = line.replace(index, 3, "");
+        replace(line, comment, "");
+    }
+
+  
+//    if(count == 2){
+//        cout << line;
+//        line = line.substr(0, line.find("//"));
+//        cout << endl<<line;
+//    }
+//    else if(count == 4){
+//        index = line.find(";", index);
+//    }
+    return line;
 }
 string fixSymbol(string word, string symbol){
     string arg,firstname, lastname,finalWord;
