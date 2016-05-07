@@ -203,12 +203,12 @@ void checkGrammar(){
                         row = find(ROWS.begin(), ROWS.end(), token) - ROWS.begin();
                     else
                         row = 0;
-                int temp = 1;//TABLE[col][row];
+                int temp = TABLE[col][row];
                 
                     parse = new string[sizeof(PREDICTIVE_SET[temp])/sizeof(PREDICTIVE_SET[temp][0])];
                     for (int t = 0; t < sizeof(PREDICTIVE_SET[temp])/sizeof(PREDICTIVE_SET[temp][0]);t++){
                         //parse[t] = PREDICTIVE_SET[TABLE[col][row]][t];
-                        string q =  PREDICTIVE_SET[t][0];
+                       parse[t]= PREDICTIVE_SET[temp][t];
                     }
                     string ar[] ={"%"};
                     if (!areEqual(parse,ar)){
