@@ -9,8 +9,12 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <stack>
+#include <iterator> 
+
 
 using namespace std;
+
 string fixSymbol(string word, string symbol);
 bool hasSymbol(string word, vector<string>& symbol);
 bool isSymbol(char symbol);
@@ -18,6 +22,54 @@ bool isStringSymbol(char symbol, char nextSymbol);
 string removeComment(string line);
 bool replace(std::string& str, const std::string& from, const std::string& to);
 string cleanWhiteSpaces(string line);
+void checkGrammar();
+bool existsIn(vector<string> ar, string value);
+bool areEqual(string parse[],string ar[]);
+void displayStack( stack<string> st);
+
+
+int TABLE[][50] = {
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0},
+    {0, 0, 5, 0, 0, 0, 5, 5, 0, 0, 0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 6, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 7, 0},
+    {0, 0, 0, 0, 0, 0, 9, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 11, 11, 11, 11, 0},
+    {0, 0, 0, 0, 0, 13, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 12, 12, 12, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 15, 15, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 17, 17, 17, 17, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 18, 18, 0, 0, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0},
+    {0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 19, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 22, 22, 0, 0, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 0},
+    {0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 25, 25, 23, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 27, 27, 0, 0, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 26, 26, 26, 26, 26, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29, 29, 0, 0, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 0, 0, 0, 0, 0, 0},
+    {0, 0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 31, 0, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 33, 0, 0, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 46, 47, 48, 49, 0}
+};
+// Arrays for looking up and conversion of input for table
+vector<string> COLUMNS = {"PROGRAM", ";", "VAR", "BEGIN", "END.", ":", ",", "INTEGER", "WRITE", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
+vector<string> ROWS = { "program", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
+        "stat-listtail", "stat", "write", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
+                 "numbertail", "sign", "digit", "id"};
+vector<string> DIGITS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+vector<string> LETTERS = {"a", "b", "c", "d", "e"};
+vector<string> SYMBOLS = {",", ";", ":", "(", ")", "-", "+", "-", "*", "/", "=", "."};
+vector<string> RESERVED_WORDS = {"PROGRAM", "VAR", "BEGIN", "END.", "INTEGER", "WRITE"};
+string PREDICTIVE_SET[50][40] = {{"null"}, {"PROGRAM", "identifier", ";", "VAR", "dec-list", "BEGIN", "stat-list", "END."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
+    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"INTEGER"},
+    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
+    {"WRITE", "(", "identifier", ")", ";"}, {"identifier", "=", "expr", ";"}, {"term", "exprtail"},
+    {"+", "expr"}, {"-", "expr"}, {"%"}, {"factor", "termtail"}, {"*", "factor", "termtail"},
+    {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
+    {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
+    {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
 
 int main(){
     ifstream infile("finalv1.txt");
@@ -38,9 +90,6 @@ int main(){
     
                 line = removeComment(line);
                 line = cleanWhiteSpaces(line);
-                
-               
-                
             }
             
         }
@@ -62,12 +111,142 @@ int main(){
         }
     }
     infile.close();
-    cout << sanitizedLine;
+
     ofstream outfile;
     outfile.open("newdata.txt");
     outfile << sanitizedLine;
     outfile.close();
+    
+    checkGrammar();
+    
     return 0;
+}
+
+void checkGrammar(){
+    stack<string> grammarStack;
+    ifstream infile;
+    infile.open("newdata.txt");
+    string input;
+    bool next;
+    int i;
+    int k =0;
+    string token;
+    string read;
+    int fail = 0;
+    int col,row;
+    string* parse;
+    int word = 0;
+    string letter = "";
+    grammarStack.push("$");
+    grammarStack.push("PROGRAM");
+    displayStack(grammarStack);
+    while(!infile.eof()){
+        getline(infile, input);
+        if (input.find(";") != std::string::npos) {
+            input = input.substr(0, input.find(";"));
+        }
+        else
+            input = input.substr(0, input.find(" "));
+       
+        //cout << input << endl;
+        next = false;
+        i = 0;
+        
+        while(!grammarStack.empty()){
+            if(next)
+                break;
+            token = grammarStack.top();
+            grammarStack.pop();
+            read = input.substr(word, input.find(" "));
+            displayStack(grammarStack);
+            
+            if( token == "$" && read == ""){
+                cout << "no error" <<endl;
+                return;
+            }
+            else if(existsIn(LETTERS,token) || existsIn(SYMBOLS,token)
+                    ||existsIn(RESERVED_WORDS,token) || existsIn(DIGITS,token)){
+                if(token == read){
+                    i+=1;
+                    word += read.size()+1;
+                }
+                else if(token == string(&read[k])){
+                    k+=1;
+                    if(k == read.size()){
+                        i+=1;
+                        k=0;
+                    }
+                }
+                else if(existsIn(SYMBOLS,token)||existsIn(RESERVED_WORDS,token)){
+                    fail = 1;
+                    break;
+                }
+                if(i == input.size()){
+                    next = true;
+                }
+            }
+            else{
+                letter = read[k];
+                if(existsIn(LETTERS,letter) ||  existsIn(DIGITS,letter)){
+                    col = find(COLUMNS.begin(), COLUMNS.end(), string(&read[0])) - COLUMNS.begin();
+                }
+                else{
+                    if(existsIn(COLUMNS,read)){
+                         col = find(COLUMNS.begin(), COLUMNS.end(), read) - COLUMNS.begin();
+                    }
+                    else{
+                        fail = 1;
+                        break;
+                    }
+                }
+                    if(existsIn(ROWS, token))
+                        row = find(ROWS.begin(), ROWS.end(), token) - ROWS.begin();
+                    else
+                        row = 0;
+                int temp = 1;//TABLE[col][row];
+                
+                    parse = new string[sizeof(PREDICTIVE_SET[temp])/sizeof(PREDICTIVE_SET[temp][0])];
+                    for (int t = 0; t < sizeof(PREDICTIVE_SET[temp])/sizeof(PREDICTIVE_SET[temp][0]);t++){
+                        //parse[t] = PREDICTIVE_SET[TABLE[col][row]][t];
+                        string q =  PREDICTIVE_SET[t][0];
+                    }
+                    string ar[] ={"%"};
+                    if (!areEqual(parse,ar)){
+                        string tAr[] ={"null"};
+                        if (areEqual(parse,tAr)){
+                            fail = 1;
+                            break;
+                        }
+                        for(int k = 0;k<sizeof(parse)/sizeof(parse[0]);k++){
+                            grammarStack.push(string(parse[k]));
+                            
+                        }
+                        displayStack(grammarStack);
+                    }
+                
+            }
+        }
+        if(fail ==1){
+            cout << "rejected";
+            return;
+        }
+        
+        
+        
+        
+    }
+    
+}
+bool areEqual(string parse[],string ar[]){
+    return std::equal(parse, parse + sizeof parse / sizeof *parse, ar);
+}
+bool existsIn(vector<string> ar, string value){
+    for(size_t i =0;i < ar.size();i++){
+        if(value == ar[i])
+            return true;
+    }
+    return false;
+    //return  find(begin(ar), end(ar), value) != std::end(ar);
 }
 bool replace(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = str.find(from);
@@ -192,6 +371,20 @@ string fixSymbol(string word, string symbol){
     
     return word;
 }
+
+
+void displayStack( stack<string> st){
+    int i = 0;
+    int f = st.size();
+    while(!st.empty()){
+        cout << st.top();
+        st.pop();
+        
+    }
+    cout << endl;
+}
+
+
 bool isStringSymbol(char symbol, char nextSymbol){
     if(symbol == '<' && nextSymbol == '<')
         return true;
