@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <stack>
 #include <iterator> 
-
+#include <sstream>
 
 using namespace std;
 
@@ -26,6 +26,9 @@ void checkGrammar();
 bool existsIn(vector<string> ar, string value);
 bool areEqual(string parse[],string ar[]);
 void displayStack( stack<string> st);
+template<typename T, typename P>
+T remove_if(T beg, T end, P pred);
+void translate();
 
 
 int TABLE[][50] = {
@@ -54,14 +57,16 @@ int TABLE[][50] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 46, 47, 48, 49, 0}
 };
 // Arrays for looking up and conversion of input for table
-vector<string> COLUMNS = {"PROGRAM", ";", "VAR", "BEGIN", "END.", ":", ",", "INTEGER", "WRITE", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
-vector<string> ROWS = { "program", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
+vector<string> COLUMNS = {"null","PROGRAM", ";", "VAR", "BEGIN", "END.", ":", ",", "INTEGER", "WRITE", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
+//vector<string> COLUMNS = {"null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
+vector<string> ROWS = { "null","program", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
         "stat-listtail", "stat", "write", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
                  "numbertail", "sign", "digit", "id"};
 vector<string> DIGITS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 vector<string> LETTERS = {"a", "b", "c", "d", "e"};
 vector<string> SYMBOLS = {",", ";", ":", "(", ")", "-", "+", "-", "*", "/", "=", "."};
 vector<string> RESERVED_WORDS = {"PROGRAM", "VAR", "BEGIN", "END.", "INTEGER", "WRITE"};
+//vector<string> RESERVED_WORDS = {"program", "var", "begin", "end.", "integer", "write"};
 string PREDICTIVE_SET[50][40] = {{"null"}, {"PROGRAM", "identifier", ";", "VAR", "dec-list", "BEGIN", "stat-list", "END."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
     {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"INTEGER"},
     {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
@@ -118,10 +123,12 @@ int main(){
     outfile.close();
     
     checkGrammar();
-    
+    translate();
     return 0;
 }
-
+void translate(){
+    
+}
 void checkGrammar(){
     stack<string> grammarStack;
     ifstream infile;
@@ -134,46 +141,71 @@ void checkGrammar(){
     string read;
     int fail = 0;
     int col,row;
-    string* parse;
+    vector<string> parse;
     int word = 0;
     string letter = "";
+    
+    string inputTemp;
+    vector<string> inputVector;
     grammarStack.push("$");
-    grammarStack.push("PROGRAM");
+    grammarStack.push("program");
     displayStack(grammarStack);
     while(!infile.eof()){
         getline(infile, input);
+        inputVector.clear();
         if (input.find(";") != std::string::npos) {
-            input = input.substr(0, input.find(";"));
+            stringstream inputstream;
+            input = input.substr(0, input.find(";")+1);
+            inputstream << input;
+            while(inputstream >> inputTemp){
+                inputVector.push_back(inputTemp);
+            }
+            
         }
-        else
+        else{
             input = input.substr(0, input.find(" "));
-       
+            inputVector.push_back(input);
+        }
+        
+        
+      
         //cout << input << endl;
         next = false;
         i = 0;
-        
+        parse.clear();
         while(!grammarStack.empty()){
             if(next)
                 break;
             token = grammarStack.top();
             grammarStack.pop();
-            read = input.substr(word, input.find(" "));
+            //read = input.substr(word, input.find(" "));
+            read = inputVector[i];
+            string ts = input;
+            read.erase(std::remove(read.begin(), read.end(), ' '),
+                        read.end());
             displayStack(grammarStack);
-            
+            parse.clear();
             if( token == "$" && read == ""){
                 cout << "no error" <<endl;
                 return;
             }
             else if(existsIn(LETTERS,token) || existsIn(SYMBOLS,token)
                     ||existsIn(RESERVED_WORDS,token) || existsIn(DIGITS,token)){
+                char letTemp = read[k];
+                string letTempS = &letTemp;
+                stringstream ss;
+                ss << letTemp;
+                ss >> letTempS;
+         
                 if(token == read){
                     i+=1;
-                    word += read.size()+1;
+                   
                 }
-                else if(token == string(&read[k])){
+                else if(token == letTempS){
                     k+=1;
                     if(k == read.size()){
                         i+=1;
+                        
                         k=0;
                     }
                 }
@@ -181,14 +213,14 @@ void checkGrammar(){
                     fail = 1;
                     break;
                 }
-                if(i == input.size()){
+                if(i == inputVector.size()){
                     next = true;
                 }
             }
             else{
                 letter = read[k];
                 if(existsIn(LETTERS,letter) ||  existsIn(DIGITS,letter)){
-                    col = find(COLUMNS.begin(), COLUMNS.end(), string(&read[0])) - COLUMNS.begin();
+                    col = find(COLUMNS.begin(), COLUMNS.end(), letter) - COLUMNS.begin();
                 }
                 else{
                     if(existsIn(COLUMNS,read)){
@@ -203,24 +235,45 @@ void checkGrammar(){
                         row = find(ROWS.begin(), ROWS.end(), token) - ROWS.begin();
                     else
                         row = 0;
-                int temp = TABLE[col][row];
+                    int temp = TABLE[row][col];
                 
-                    parse = new string[sizeof(PREDICTIVE_SET[temp])/sizeof(PREDICTIVE_SET[temp][0])];
+                
                     for (int t = 0; t < sizeof(PREDICTIVE_SET[temp])/sizeof(PREDICTIVE_SET[temp][0]);t++){
                         //parse[t] = PREDICTIVE_SET[TABLE[col][row]][t];
-                       parse[t]= PREDICTIVE_SET[temp][t];
+                        string f =PREDICTIVE_SET[temp][t];
+                        if(PREDICTIVE_SET[temp][t] != "")
+                            parse.push_back(PREDICTIVE_SET[temp][t]);
                     }
                     string ar[] ={"%"};
-                    if (!areEqual(parse,ar)){
+                
+                    bool eq =true;
+                for(int i = 0; i <sizeof(ar)/sizeof(*ar);i++){
+                    
+                    if(parse[i] != ar[i]){
+                        eq = false;
+                        break;
+                    }
+                }
+                    if (!eq){
                         string tAr[] ={"null"};
-                        if (areEqual(parse,tAr)){
+                        bool tEQ =true;
+                        for(int i = 0; i <sizeof(tAr)/sizeof(*tAr);i++){
+                            
+                            if(parse[i] != tAr[i]){
+                                tEQ = false;
+                                break;
+                            }
+                        }
+                        if (tEQ){
                             fail = 1;
                             break;
                         }
-                        for(int k = 0;k<sizeof(parse)/sizeof(parse[0]);k++){
-                            grammarStack.push(string(parse[k]));
+                        for(int k = parse.size()-1;k>=0;k--){
+                            if(parse[k] != "")
+                                grammarStack.push(string(parse[k]));
                             
                         }
+                        parse.clear();
                         displayStack(grammarStack);
                     }
                 
@@ -236,6 +289,15 @@ void checkGrammar(){
         
     }
     
+}
+template<typename T, typename P>
+T remove_if(T beg, T end, P pred)
+{
+    T dest = beg;
+    for (T itr = beg;itr != end; ++itr)
+        if (!pred(*itr))
+            *(dest++) = *itr;
+    return dest;
 }
 bool areEqual(string parse[],string ar[]){
     return std::equal(parse, parse + sizeof parse / sizeof *parse, ar);
@@ -261,9 +323,6 @@ string removeComment(string line){
     bool comm = false;
     string comment = "";
     for(int i=0;i<line.size();i++){
-//        if(line[i] == '/'){
-//            count++;
-//        }
         if(comm)
             comment += line[i];
         if(i < line.size()-1){
@@ -277,9 +336,6 @@ string removeComment(string line){
         }
     }
     if(comment != ""){
-//        size_t index = 0;
-//        index = line.find(comment, index);
-//        line = line.replace(index, 3, "");
         replace(line, comment, "");
     }
 
@@ -376,10 +432,13 @@ string fixSymbol(string word, string symbol){
 void displayStack( stack<string> st){
     int i = 0;
     int f = st.size();
+    vector<string> print;
     while(!st.empty()){
-        cout << st.top();
+        print.push_back(st.top());
         st.pop();
-        
+    }
+    for(size_t i = 0;i <print.size();i++){
+        cout << print[i] << " ";
     }
     cout << endl;
 }
