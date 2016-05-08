@@ -29,6 +29,8 @@ void displayStack( stack<string> st);
 template<typename T, typename P>
 T remove_if(T beg, T end, P pred);
 void translate();
+string varType(vector<string> line);
+string outputStatement(vector<string> line);
 
 
 int TABLE[][50] = {
@@ -127,7 +129,90 @@ int main(){
     return 0;
 }
 void translate(){
+    ifstream infile;
+    infile.open("newdata.txt");
+    string input;
+    vector<string> line;
     
+    string hllString = "#include <iostream> \nusing namespace std; \nint main(){\n";
+    while(!infile.eof()){
+        getline(infile,input);
+        
+        if (input.find("VAR") != std::string::npos){
+            getline(infile,input);
+            stringstream word;
+            string w;
+            word << input;
+            line.clear();
+            while(word >> w){
+                line.push_back(w);
+            }
+            hllString += varType(line);
+        }
+        else if (input.find("begin") == std::string::npos && input.find("end") == std::string::npos){
+            if (input.find("=") != std::string::npos){
+                hllString += input + "\n";
+            }
+            else if(input.find("WRITE") != std::string::npos){
+                stringstream word;
+                string w;
+                word << input;
+                line.clear();
+                while(word >> w){
+                    line.push_back(w);
+                }
+                hllString += outputStatement(line);
+            }
+        }
+        
+    }
+    infile.close();
+    hllString += "return 0; \n}";
+    cout << hllString << endl;
+    ofstream outfile;
+    outfile.open("cplusplusout.cpp");
+    outfile << hllString;
+    outfile.close();
+    
+}
+
+
+string outputStatement(vector<string> line){
+    string hllLine = "";
+    for(int i=2;i<line.size();i++){
+        if(line[i] == ")")
+            break;
+        hllLine += "cout << " + line[i] + " << endl;\n";
+    }
+    return hllLine;
+}
+
+string varType(vector<string> line){
+    string hllString = "";
+    
+    string varType =line[line.size()-2];
+    if(varType == "INTEGER"){
+        hllString += "int ";
+    }
+    else if(varType == "STRING"){
+        hllString += "string ";
+    }
+    else if(varType == "DOUBLE"){
+        hllString += "double ";
+    }
+    else if(varType == "char"){
+        hllString += "char ";
+    }
+    
+    for(int i =0; i < line.size();i++){
+        if(line[i] == ":")
+            break;
+        hllString+=line[i];
+    }
+    hllString += ";";
+   
+    
+    return hllString;
 }
 void checkGrammar(){
     stack<string> grammarStack;
@@ -288,7 +373,7 @@ void checkGrammar(){
         
         
     }
-    
+    infile.close();
 }
 template<typename T, typename P>
 T remove_if(T beg, T end, P pred)
