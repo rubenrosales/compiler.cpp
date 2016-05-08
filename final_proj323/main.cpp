@@ -77,7 +77,14 @@ string PREDICTIVE_SET[50][40] = {{"null"}, {"PROGRAM", "identifier", ";", "VAR",
     {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
     {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
     {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
-
+//string PREDICTIVE_SET[50][40] = {{"null"}, {"program", "identifier", ";", "VAR", "dec-list", "begin", "stat-list", "end."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
+//    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"integer"},
+//    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
+//    {"write", "(", "identifier", ")", ";"}, {"identifier", "=", "expr", ";"}, {"term", "exprtail"},
+//    {"+", "expr"}, {"-", "expr"}, {"%"}, {"factor", "termtail"}, {"*", "factor", "termtail"},
+//    {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
+//    {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
+//    {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
 int main(){
     ifstream infile("finalv1.txt");
     string line, temp, sanitizedLine;
@@ -125,7 +132,7 @@ int main(){
     outfile.close();
     
     checkGrammar();
-    translate();
+    
     return 0;
 }
 void translate(){
@@ -173,7 +180,6 @@ void translate(){
     outfile.open("cplusplusout.cpp");
     outfile << hllString;
     outfile.close();
-    
 }
 
 
@@ -272,6 +278,7 @@ void checkGrammar(){
             parse.clear();
             if( token == "$" && read == ""){
                 cout << "no error" <<endl;
+                translate();
                 return;
             }
             else if(existsIn(LETTERS,token) || existsIn(SYMBOLS,token)
