@@ -31,7 +31,7 @@ string varType(vector<string> line);
 string outputStatement(vector<string> line);
 string santizeInput();
 void toFile(string output);
-void findError(string token,string read);
+void findError(string token,string read,stack<string> grammar);
 
 int TABLE[32][50] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -369,7 +369,7 @@ void checkGrammar(){
             }
         }
         if(fail ==1){
-            findError(token,read);
+            findError(token,read,grammarStack);
             return;
         }
         
@@ -379,7 +379,7 @@ void checkGrammar(){
     }
     infile.close();
 }
-void findError(string token,string read){
+void findError(string token,string read,stack<string> grammar){
     if(token == "P"){
         cout << "program was expected" << endl;
     }
@@ -387,10 +387,16 @@ void findError(string token,string read){
         cout << token << " was expected" << endl;
     }
     else if(token == "stat-listtail"){
-        cout << "write was expected" << endl;
+        if(read == "" || read == "end")
+            cout << "end. was expected" << endl;
+        else
+            cout << "write was expected" << endl;
     }
     else if(existsIn(SYMBOLS,token)){
         cout << token << "is missing" << endl;
+    }
+    else if(grammar.size() > 1){
+        cout << read << " was expected" << endl;
     }
     else{
         cout << "unknown error" << endl;
