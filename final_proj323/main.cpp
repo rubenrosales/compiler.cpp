@@ -1,7 +1,7 @@
 //Authors: Andrew Do, Cole Cambruzzi, Ruben Rosales
-//Program 4
+//Final
 //CPSC 323
-//Purpose: read text from input file and fix syntax and remove comments
+//Purpose:
 
 #include <iostream>
 #include <fstream>
@@ -26,12 +26,12 @@ void checkGrammar();
 bool existsIn(vector<string> ar, string value);
 bool areEqual(string parse[],string ar[]);
 void displayStack( stack<string> st);
-template<typename T, typename P>
-T remove_if(T beg, T end, P pred);
 void translate();
 string varType(vector<string> line);
 string outputStatement(vector<string> line);
-
+string santizeInput();
+void toFile(string output);
+void findError(string token,string read);
 
 int TABLE[32][50] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -58,21 +58,14 @@ int TABLE[32][50] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 46, 47, 48, 49, 0}
 };
-// Arrays for looking up and conversion of input for table
-//vector<string> COLUMNS = {"null","PROGRAM", ";", "VAR", "BEGIN", "END.", ":", ",", "INTEGER", "WRITE", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};e
-
 vector<string> COLUMNS = {"null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
-//vector<string> ROWS = { "null","program", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
-//        "stat-listtail", "stat", "write", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
-//                 "numbertail", "sign", "digit", "id"};
 vector<string> ROWS = { "null","P", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
     "stat-listtail", "stat", "W", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
     "numbertail", "sign", "digit", "id"};
 vector<string> DIGITS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-vector<string> LETTERS = {"a", "b", "c", "d", "e"};
+vector<string> LETTERS = {"a", "b", "c"};
 vector<string> SYMBOLS = {",", ";", ":", "(", ")", "-", "+", "-", "*", "/", "=", "."};
 vector<string> RESERVED_WORDS = {"program", "var", "begin", "end.", "integer", "write"};
-//vector<string> RESERVED_WORDS = {"program", "var", "begin", "end.", "integer", "write"};
 string PREDICTIVE_SET[50][40] = {{"null"}, {"program", "identifier", ";", "var", "dec-list", "begin", "stat-list", "end."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
     {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"integer"},
     {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"W"}, {"assign"},
@@ -81,29 +74,29 @@ string PREDICTIVE_SET[50][40] = {{"null"}, {"program", "identifier", ";", "var",
     {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
     {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
     {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
-//string PREDICTIVE_SET[50][40] = {{"null"}, {"PROGRAM", "identifier", ";", "VAR", "dec-list", "BEGIN", "stat-list", "END."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
-//    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"INTEGER"},
-//    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
-//    {"WRITE", "(", "identifier", ")", ";"}, {"identifier", "=", "expr", ";"}, {"term", "exprtail"},
-//    {"+", "expr"}, {"-", "expr"}, {"%"}, {"factor", "termtail"}, {"*", "factor", "termtail"},
-//    {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
-//    {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
-//    {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
-//string PREDICTIVE_SET[50][40] = {{"null"}, {"program", "identifier", ";", "VAR", "dec-list", "begin", "stat-list", "end."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
-//    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"integer"},
-//    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
-//    {"write", "(", "identifier", ")", ";"}, {"identifier", "=", "expr", ";"}, {"term", "exprtail"},
-//    {"+", "expr"}, {"-", "expr"}, {"%"}, {"factor", "termtail"}, {"*", "factor", "termtail"},
-//    {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
-//    {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
-//    {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
+
 int main(){
-    ifstream infile("finalv1.txt");
-    string line, temp, sanitizedLine;
-    vector<string> symbol;
-    stringstream word;
-    vector<string>lines;
     
+    string output = santizeInput();
+    
+    toFile(output);
+    checkGrammar();
+    
+    return 0;
+}
+
+void toFile(string output){
+    ofstream outfile;
+    outfile.open("newdata.txt");
+    outfile << output;
+    outfile.close();
+}
+
+string santizeInput(){
+    ifstream infile("finalv1.txt");
+
+    vector<string> symbol;
+    string line,sanitizedLine, temp = "";
     
     while(!infile.eof()){
         
@@ -113,14 +106,13 @@ int main(){
             if(line.find(";") ==std::string::npos)
                 line = "";
             else{
-    
+                
                 line = removeComment(line);
                 line = cleanWhiteSpaces(line);
             }
             
         }
-        char q =line[1];
-        char ff = line[0];
+
         string check = &line[0] + line[1];
         if(line != "" && check != "\n"){
             stringstream word(line);
@@ -137,27 +129,12 @@ int main(){
             }
             sanitizedLine += '\n';
         }
-         if(line == ""){
-            cout << "F";
-        }
-         if(line[1] == 'n'){
-            cout << "F";
-        }
-         if(line[0] == '\\'){
-            cout << "F";
-        }
     }
     infile.close();
-
-    ofstream outfile;
-    outfile.open("newdata.txt");
-    outfile << sanitizedLine;
-    outfile.close();
     
-    checkGrammar();
-    
-    return 0;
+    return sanitizedLine;
 }
+
 void translate(){
     ifstream infile;
     infile.open("newdata.txt");
@@ -243,6 +220,7 @@ string varType(vector<string> line){
     
     return hllString;
 }
+
 void checkGrammar(){
     stack<string> grammarStack;
     ifstream infile;
@@ -256,7 +234,6 @@ void checkGrammar(){
     int fail = 0;
     int col,row;
     vector<string> parse;
-    int word = 0;
     string letter = "";
     
     string inputTemp;
@@ -264,6 +241,7 @@ void checkGrammar(){
     grammarStack.push("$");
     grammarStack.push("P");
     displayStack(grammarStack);
+    
     while(!infile.eof()){
         getline(infile, input);
         
@@ -275,25 +253,21 @@ void checkGrammar(){
             while(inputstream >> inputTemp){
                 inputVector.push_back(inputTemp);
             }
-            
         }
         else{
             input = input.substr(0, input.find(" "));
             inputVector.push_back(input);
         }
         
-        
-      
-        //cout << input << endl;
         next = false;
         i = 0;
         parse.clear();
+        
         while(!grammarStack.empty()){
             if(next)
                 break;
             token = grammarStack.top();
             grammarStack.pop();
-            //read = input.substr(word, input.find(" "));
             read = inputVector[i];
             string ts = input;
             read.erase(std::remove(read.begin(), read.end(), ' '),
@@ -301,7 +275,7 @@ void checkGrammar(){
             displayStack(grammarStack);
             parse.clear();
             if( token == "$" && read == ""){
-                cout << "no error" <<endl;
+                cout << "pass" <<endl;
                 translate();
                 return;
             }
@@ -355,7 +329,6 @@ void checkGrammar(){
                 
                 
                     for (int t = 0; t < sizeof(PREDICTIVE_SET[temp])/sizeof(PREDICTIVE_SET[temp][0]);t++){
-                        //parse[t] = PREDICTIVE_SET[TABLE[col][row]][t];
                         string f =PREDICTIVE_SET[temp][t];
                         if(PREDICTIVE_SET[temp][t] != "")
                             parse.push_back(PREDICTIVE_SET[temp][t]);
@@ -396,7 +369,7 @@ void checkGrammar(){
             }
         }
         if(fail ==1){
-            cout << "rejected";
+            findError(token,read);
             return;
         }
         
@@ -406,14 +379,23 @@ void checkGrammar(){
     }
     infile.close();
 }
-template<typename T, typename P>
-T remove_if(T beg, T end, P pred)
-{
-    T dest = beg;
-    for (T itr = beg;itr != end; ++itr)
-        if (!pred(*itr))
-            *(dest++) = *itr;
-    return dest;
+void findError(string token,string read){
+    if(token == "P"){
+        cout << "program was expected" << endl;
+    }
+    else if(existsIn(RESERVED_WORDS,token)){
+        cout << token << " was expected" << endl;
+    }
+    else if(token == "stat-listtail"){
+        cout << "write was expected" << endl;
+    }
+    else if(existsIn(SYMBOLS,token)){
+        cout << token << "is missing" << endl;
+    }
+    else{
+        cout << "unknown error" << endl;
+    }
+    
 }
 bool areEqual(string parse[],string ar[]){
     return std::equal(parse, parse + sizeof parse / sizeof *parse, ar);
@@ -424,8 +406,8 @@ bool existsIn(vector<string> ar, string value){
             return true;
     }
     return false;
-    //return  find(begin(ar), end(ar), value) != std::end(ar);
 }
+
 bool replace(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = str.find(from);
     if(start_pos == std::string::npos)
@@ -433,9 +415,8 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
     str.replace(start_pos, from.length(), to);
     return true;
 }
+
 string removeComment(string line){
-    int count = 0;
-    int initIndex = -1;
     bool comm = false;
     string comment = "";
     for(int i=0;i<line.size();i++){
@@ -454,16 +435,6 @@ string removeComment(string line){
     if(comment != ""){
         replace(line, comment, "");
     }
-
-  
-//    if(count == 2){
-//        cout << line;
-//        line = line.substr(0, line.find("//"));
-//        cout << endl<<line;
-//    }
-//    else if(count == 4){
-//        index = line.find(";", index);
-//    }
     return line;
 }
 
@@ -483,6 +454,7 @@ string cleanWhiteSpaces(string line){
     }
     return cleanLine;
 }
+
 string fixSymbol(string word, string symbol){
     string arg,firstname, lastname,finalWord;
     
@@ -546,8 +518,7 @@ string fixSymbol(string word, string symbol){
 
 
 void displayStack( stack<string> st){
-    int i = 0;
-    int f = st.size();
+
     vector<string> print;
     while(!st.empty()){
         print.push_back(st.top());
