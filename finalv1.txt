@@ -1,16 +1,15 @@
-PROGRAM a2014;
+program a2016;
 // This program computes and prints the value
     Of an expression //
-VAR
+var
     // declare variables //
-    a1 ,   b2a ,   c, ba12  :  INTEGER ;
-BEGIN
+    a1 ,   b2a ,   c, ba12  :  integer ;
+begin
     a1    = 3;
     b2a=    4 ;
     c    = 5  ;
     write( c ); // display c //
-
     	// compute the value of the expression //
     	ba12 = a1 * ( b2a + 2 * c )   ;
-    	WRITE( ba12 ) ; // print the value of ba12 //
-END.
+    	write( ba12 ) ; // print the value of ba12 //
+end.
