@@ -1,7 +1,7 @@
 //Authors: Andrew Do, Cole Cambruzzi, Ruben Rosales
-//Final
+//Final Project
 //CPSC 323
-//Purpose:
+//Purpose: Construct a compiler that takes an input file of mangled grammar, fixes it, and ouputs it into c++ code
 
 #include <iostream>
 #include <fstream>
@@ -24,7 +24,7 @@ bool replace(std::string& str, const std::string& from, const std::string& to);
 string cleanWhiteSpaces(string line);
 void checkGrammar();
 bool existsIn(vector<string> ar, string value);
-bool areEqual(string parse[], string ar[]);
+
 void displayStack(stack<string> st);
 void translate();
 string varType(vector<string> line);
@@ -33,7 +33,7 @@ string santizeInput();
 void toFile(string output);
 void findError(string token, string read, stack<string> grammar);
 
-int TABLE[32][50] = {
+const int TABLE[32][50] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0 },
@@ -58,15 +58,15 @@ int TABLE[32][50] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 46, 47, 48, 49, 0 }
 };
-vector<string> COLUMNS = { "null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "$" };
-vector<string> ROWS = { "null","P", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
+const vector<string> COL = { "null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "$" };
+const vector<string> ROW = { "null","P", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
     "stat-listtail", "stat", "W", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
     "numbertail", "sign", "digit", "id" };
-vector<string> DIGITS = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-vector<string> LETTERS = { "a", "b", "c" };
-vector<string> SYMBOLS = { ",", ";", ":", "(", ")", "-", "+", "-", "*", "/", "=", "." };
-vector<string> RESERVED_WORDS = { "program", "var", "begin", "end.", "integer", "write" };
-string PREDICTIVE_SET[50][40] = { { "null" },{ "program", "identifier", ";", "var", "dec-list", "begin", "stat-list", "end." },{ "id", "identifiertail" },{ "id", "identifiertail" },{ "digit", "identifiertail" },{ "%" },
+const vector<string> DIG = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+const vector<string> LET = { "a", "b", "c" };
+const vector<string> SYM = { ",", ";", ":", "(", ")", "-", "+", "-", "*", "/", "=", "." };
+const vector<string> RESERVED_WORDS = { "program", "var", "begin", "end.", "integer", "write" };
+const string PREDICTIVE_SET[50][40] = { { "null" },{ "program", "identifier", ";", "var", "dec-list", "begin", "stat-list", "end." },{ "id", "identifiertail" },{ "id", "identifiertail" },{ "digit", "identifiertail" },{ "%" },
     { "dec", ":", "type", ";" },{ "identifier", "dectail" },{ ",", "dec" },{ "%" },{ "integer" },
     { "stat", "stat-listtail" },{ "stat-list" },{ "%" },{ "W" },{ "assign" },
     { "write", "(", "identifier", ")", ";" },{ "identifier", "=", "expr", ";" },{ "term", "exprtail" },
@@ -75,6 +75,8 @@ string PREDICTIVE_SET[50][40] = { { "null" },{ "program", "identifier", ";", "va
     { "sign", "digit", "numbertail" },{ "digit", "numbertail" },{ "%" },{ "+" },{ "-" },{ "%" },{ "0" },{ "1" },
     { "2" },{ "3" },{ "4" },{ "5" },{ "6" },{ "7" },{ "8" },{ "9" },{ "a" },{ "b" },{ "c" } };
 
+// Function: main
+// Purpose: process program until user exits
 int main() {
     
     string output = santizeInput();
@@ -84,14 +86,17 @@ int main() {
     
     return 0;
 }
-
+// Function: toFile
+// Purpose: output fixed text to new file
 void toFile(string output) {
     ofstream outfile;
-    outfile.open("newdata.txt");
+    outfile.open("finalv2.txt");
     outfile << output;
     outfile.close();
 }
 
+// Function: santizeInput
+// Purpose: remove any unneccesary lines from original text file
 string santizeInput() {
     ifstream infile("finalv1.txt");
     
@@ -139,6 +144,8 @@ string santizeInput() {
     return sanitizedLine;
 }
 
+// Function: translate
+// Purpose: remove any unneccesary lines from original text file
 void translate() {
     ifstream infile;
     infile.open("finalv2.txt");
@@ -186,7 +193,8 @@ void translate() {
     outfile.close();
 }
 
-
+// Function: outputStatement
+// Purpose: convert write to cout
 string outputStatement(vector<string> line) {
     string hllLine = "";
     for (int i = 2; i<line.size(); i++) {
@@ -197,6 +205,8 @@ string outputStatement(vector<string> line) {
     return hllLine;
 }
 
+// Function: varType
+// Purpose: determine variable type of line
 string varType(vector<string> line) {
     string hllString = "";
     
@@ -225,17 +235,19 @@ string varType(vector<string> line) {
     return hllString;
 }
 
+// Function: checkGrammar
+// Purpose: verify if grammar is valid
 void checkGrammar() {
     stack<string> grammarStack;
     ifstream infile;
-    infile.open("newdata.txt");
+    infile.open("finalv2.txt");
     string input;
     bool nextStatement;
     int i;
     int k = 0;
     string charac;
     string currentTok;
-    int fail = 0;
+    bool fail = false;
     int col, row;
     vector<string> currentLine;
     string letter = "";
@@ -283,8 +295,8 @@ void checkGrammar() {
                 translate();
                 return;
             }
-            else if (existsIn(LETTERS, charac) || existsIn(SYMBOLS, charac)
-                     || existsIn(RESERVED_WORDS, charac) || existsIn(DIGITS, charac)) {
+            else if (existsIn(LET, charac) || existsIn(SYM, charac)
+                     || existsIn(RESERVED_WORDS, charac) || existsIn(DIG, charac)) {
                 char letTemp = currentTok[k];
                 string letTempS = &letTemp;
                 stringstream ss;
@@ -303,8 +315,8 @@ void checkGrammar() {
                         k = 0;
                     }
                 }
-                else if (existsIn(SYMBOLS, charac) || existsIn(RESERVED_WORDS, charac)) {
-                    fail = 1;
+                else if (existsIn(SYM, charac) || existsIn(RESERVED_WORDS, charac)) {
+                    fail = true;
                     break;
                 }
                 if (i == inputVector.size()) {
@@ -313,20 +325,20 @@ void checkGrammar() {
             }
             else {
                 letter = currentTok[k];
-                if ((existsIn(LETTERS, letter) || existsIn(DIGITS, letter)) && currentTok != "end.") {
-                    col = find(COLUMNS.begin(), COLUMNS.end(), letter) - COLUMNS.begin();
+                if ((existsIn(LET, letter) || existsIn(DIG, letter)) && currentTok != "end.") {
+                    col = find(COL.begin(), COL.end(), letter) - COL.begin();
                 }
                 else {
-                    if (existsIn(COLUMNS, currentTok)) {
-                        col = find(COLUMNS.begin(), COLUMNS.end(), currentTok) - COLUMNS.begin();
+                    if (existsIn(COL, currentTok)) {
+                        col = find(COL.begin(), COL.end(), currentTok) - COL.begin();
                     }
                     else {
-                        fail = 1;
+                        fail = true;
                         break;
                     }
                 }
-                if (existsIn(ROWS, charac))
-                    row = find(ROWS.begin(), ROWS.end(), charac) - ROWS.begin();
+                if (existsIn(ROW, charac))
+                    row = find(ROW.begin(), ROW.end(), charac) - ROW.begin();
                 else
                     row = 0;
                 int temp = TABLE[row][col];
@@ -358,7 +370,7 @@ void checkGrammar() {
                         }
                     }
                     if (tEQ) {
-                        fail = 1;
+                        fail = true;
                         break;
                     }
                     for (int k = currentLine.size() - 1; k >= 0; k--) {
@@ -372,7 +384,7 @@ void checkGrammar() {
                 
             }
         }
-        if (fail == 1) {
+        if (fail == true) {
             findError(charac, currentTok, grammarStack);
             return;
         }
@@ -384,7 +396,8 @@ void checkGrammar() {
     infile.close();
 }
 
-
+// Function: findError
+// Purpose: remove any unneccesary lines from original text file
 void findError(string charac, string currStatement, stack<string> grammar) {
     if (charac == "P") {
         cout << "program was expected" << endl;
@@ -393,12 +406,12 @@ void findError(string charac, string currStatement, stack<string> grammar) {
         cout << charac << " was expected" << endl;
     }
     else if (charac == "stat-listtail") {
-        if (currStatement == "" || currStatement == "end")
+        if (currStatement == "" || currStatement == "end" || currStatement == ".")
             cout << "end. was expected" << endl;
         else
             cout << "write was expected" << endl;
     }
-    else if (existsIn(SYMBOLS, charac)) {
+    else if (existsIn(SYM, charac)) {
         cout << charac << "is missing" << endl;
     }
     else if (grammar.size() > 1) {
@@ -409,9 +422,8 @@ void findError(string charac, string currStatement, stack<string> grammar) {
     }
     
 }
-bool areEqual(string parse[], string ar[]) {
-    return std::equal(parse, parse + sizeof parse / sizeof *parse, ar);
-}
+// Function: existsIn
+// Purpose: determine if variable exists in constant vectors
 bool existsIn(vector<string> ar, string value) {
     for (size_t i = 0; i < ar.size(); i++) {
         if (value == ar[i])
@@ -420,6 +432,8 @@ bool existsIn(vector<string> ar, string value) {
     return false;
 }
 
+// Function: replace
+// Purpose: replace all instances of substring in string
 bool replace(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = str.find(from);
     if (start_pos == std::string::npos)
@@ -428,6 +442,8 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
     return true;
 }
 
+// Function: removeComment
+// Purpose: remove all comments from string
 string removeComment(string line) {
     bool comm = false;
     string comment = "";
@@ -450,6 +466,8 @@ string removeComment(string line) {
     return line;
 }
 
+// Function: cleanWhiteSpaces
+// Purpose: remove any unncessary whitespaces and add where needed
 string cleanWhiteSpaces(string line) {
     string cleanLine = "";
     
@@ -467,8 +485,10 @@ string cleanWhiteSpaces(string line) {
     return cleanLine;
 }
 
+// Function: fixSymbol
+// Purpose: if string has operator fix it
 string fixSymbol(string word, string symbol) {
-    string arg, firstname, lastname, finalWord;
+    string  finalWord;
     
     if (word.find(symbol) != std::string::npos && symbol != "" && word.size() > 1) {
         for (int i = 0; i < word.size(); i++) {
@@ -492,6 +512,7 @@ string fixSymbol(string word, string symbol) {
             }
             else if (i <= word.size() - 2 && isStringSymbol(word[i], word[i + 1])) {
                 string temp;
+                
                 if (i == 0) {
                     temp = word[i];
                     temp += word[i + 1];
@@ -528,7 +549,8 @@ string fixSymbol(string word, string symbol) {
     return word;
 }
 
-
+// Function: displayStack
+// Purpose: output stack to trace it
 void displayStack(stack<string> st) {
     
     vector<string> print;
@@ -542,19 +564,23 @@ void displayStack(stack<string> st) {
     cout << endl;
 }
 
-
+// Function: isStringSymbol << operand
+// Purpose: determine if string is
 bool isStringSymbol(char symbol, char nextSymbol) {
     if (symbol == '<' && nextSymbol == '<')
         return true;
     return false;
 }
-
+// Function: isSymbol
+// Purpose: determine if variable is special char
 bool isSymbol(char symbol) {
     if (symbol == '+' || symbol == '=' || symbol == ',' || symbol == ';')
         return true;
     return false;
 }
 
+// Function: hasSymbol
+// Purpose: determine if variable has special char
 bool hasSymbol(string word, vector<string>& symbol) {
     if (word.find("+") != std::string::npos) {
         symbol.push_back("+");
