@@ -33,7 +33,7 @@ string varType(vector<string> line);
 string outputStatement(vector<string> line);
 
 
-int TABLE[][50] = {
+int TABLE[32][50] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0},
@@ -59,24 +59,36 @@ int TABLE[][50] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 46, 47, 48, 49, 0}
 };
 // Arrays for looking up and conversion of input for table
-vector<string> COLUMNS = {"null","PROGRAM", ";", "VAR", "BEGIN", "END.", ":", ",", "INTEGER", "WRITE", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
-//vector<string> COLUMNS = {"null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
-vector<string> ROWS = { "null","program", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
-        "stat-listtail", "stat", "write", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
-                 "numbertail", "sign", "digit", "id"};
+//vector<string> COLUMNS = {"null","PROGRAM", ";", "VAR", "BEGIN", "END.", ":", ",", "INTEGER", "WRITE", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};e
+
+vector<string> COLUMNS = {"null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
+//vector<string> ROWS = { "null","program", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
+//        "stat-listtail", "stat", "write", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
+//                 "numbertail", "sign", "digit", "id"};
+vector<string> ROWS = { "null","P", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
+    "stat-listtail", "stat", "W", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
+    "numbertail", "sign", "digit", "id"};
 vector<string> DIGITS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 vector<string> LETTERS = {"a", "b", "c", "d", "e"};
 vector<string> SYMBOLS = {",", ";", ":", "(", ")", "-", "+", "-", "*", "/", "=", "."};
-vector<string> RESERVED_WORDS = {"PROGRAM", "VAR", "BEGIN", "END.", "INTEGER", "WRITE"};
+vector<string> RESERVED_WORDS = {"program", "var", "begin", "end.", "integer", "write"};
 //vector<string> RESERVED_WORDS = {"program", "var", "begin", "end.", "integer", "write"};
-string PREDICTIVE_SET[50][40] = {{"null"}, {"PROGRAM", "identifier", ";", "VAR", "dec-list", "BEGIN", "stat-list", "END."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
-    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"INTEGER"},
-    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
-    {"WRITE", "(", "identifier", ")", ";"}, {"identifier", "=", "expr", ";"}, {"term", "exprtail"},
+string PREDICTIVE_SET[50][40] = {{"null"}, {"program", "identifier", ";", "var", "dec-list", "begin", "stat-list", "end."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
+    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"integer"},
+    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"W"}, {"assign"},
+    {"write", "(", "identifier", ")", ";"}, {"identifier", "=", "expr", ";"}, {"term", "exprtail"},
     {"+", "expr"}, {"-", "expr"}, {"%"}, {"factor", "termtail"}, {"*", "factor", "termtail"},
     {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
     {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
     {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
+//string PREDICTIVE_SET[50][40] = {{"null"}, {"PROGRAM", "identifier", ";", "VAR", "dec-list", "BEGIN", "stat-list", "END."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
+//    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"INTEGER"},
+//    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
+//    {"WRITE", "(", "identifier", ")", ";"}, {"identifier", "=", "expr", ";"}, {"term", "exprtail"},
+//    {"+", "expr"}, {"-", "expr"}, {"%"}, {"factor", "termtail"}, {"*", "factor", "termtail"},
+//    {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
+//    {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
+//    {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
 //string PREDICTIVE_SET[50][40] = {{"null"}, {"program", "identifier", ";", "VAR", "dec-list", "begin", "stat-list", "end."},{"id", "identifiertail"}, {"id", "identifiertail"}, {"digit", "identifiertail"}, {"%"},
 //    {"dec", ":", "type", ";"}, {"identifier", "dectail"}, {",", "dec"}, {"%"}, {"integer"},
 //    {"stat", "stat-listtail"}, {"stat-list"}, {"%"}, {"write"}, {"assign"},
@@ -107,8 +119,10 @@ int main(){
             }
             
         }
-        
-        if(line != "" && line[1] != 'n' && line[0] != '\\'){
+        char q =line[1];
+        char ff = line[0];
+        string check = &line[0] + line[1];
+        if(line != "" && check != "\n"){
             stringstream word(line);
             while(word >> temp){
                 if(hasSymbol(temp,symbol)){
@@ -122,6 +136,15 @@ int main(){
                 sanitizedLine += temp + " ";
             }
             sanitizedLine += '\n';
+        }
+         if(line == ""){
+            cout << "F";
+        }
+         if(line[1] == 'n'){
+            cout << "F";
+        }
+         if(line[0] == '\\'){
+            cout << "F";
         }
     }
     infile.close();
@@ -145,7 +168,7 @@ void translate(){
     while(!infile.eof()){
         getline(infile,input);
         
-        if (input.find("VAR") != std::string::npos){
+        if (input.find("var") != std::string::npos){
             getline(infile,input);
             stringstream word;
             string w;
@@ -160,7 +183,7 @@ void translate(){
             if (input.find("=") != std::string::npos){
                 hllString += input + "\n";
             }
-            else if(input.find("WRITE") != std::string::npos){
+            else if(input.find("write") != std::string::npos){
                 stringstream word;
                 string w;
                 word << input;
@@ -197,13 +220,13 @@ string varType(vector<string> line){
     string hllString = "";
     
     string varType =line[line.size()-2];
-    if(varType == "INTEGER"){
+    if(varType == "integer"){
         hllString += "int ";
     }
-    else if(varType == "STRING"){
+    else if(varType == "string"){
         hllString += "string ";
     }
-    else if(varType == "DOUBLE"){
+    else if(varType == "double"){
         hllString += "double ";
     }
     else if(varType == "char"){
@@ -239,10 +262,11 @@ void checkGrammar(){
     string inputTemp;
     vector<string> inputVector;
     grammarStack.push("$");
-    grammarStack.push("program");
+    grammarStack.push("P");
     displayStack(grammarStack);
     while(!infile.eof()){
         getline(infile, input);
+        
         inputVector.clear();
         if (input.find(";") != std::string::npos) {
             stringstream inputstream;
@@ -311,7 +335,7 @@ void checkGrammar(){
             }
             else{
                 letter = read[k];
-                if(existsIn(LETTERS,letter) ||  existsIn(DIGITS,letter)){
+                if((existsIn(LETTERS,letter) ||  existsIn(DIGITS,letter)) && read != "end."){
                     col = find(COLUMNS.begin(), COLUMNS.end(), letter) - COLUMNS.begin();
                 }
                 else{
@@ -529,8 +553,8 @@ void displayStack( stack<string> st){
         print.push_back(st.top());
         st.pop();
     }
-    for(size_t i = 0;i <print.size();i++){
-        cout << print[i] << " ";
+    for(int k = print.size()-1; k >=0; k--){
+        cout << print[k] << " ";
     }
     cout << endl;
 }
