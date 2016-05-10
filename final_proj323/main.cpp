@@ -58,7 +58,7 @@ int TABLE[32][50] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 46, 47, 48, 49, 0}
 };
-vector<string> COLUMNS = {"null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "$"};
+vector<string> COLUMNS = {"null","program", ";", "var", "begin", "end.", ":", ",", "integer", "write", "(", ")", "=", "+", "-", "*", "/","0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "$"};
 vector<string> ROWS = { "null","P", "identifier", "identifiertail", "dec-list", "dec", "dectail", "type", "stat-list",
     "stat-listtail", "stat", "W", "assign", "expr", "exprtail", "term", "termtail", "factor", "number",
     "numbertail", "sign", "digit", "id"};
@@ -73,7 +73,7 @@ string PREDICTIVE_SET[50][40] = {{"null"}, {"program", "identifier", ";", "var",
     {"+", "expr"}, {"-", "expr"}, {"%"}, {"factor", "termtail"}, {"*", "factor", "termtail"},
     {"/", "factor", "termtail"}, {"%"}, {"identifier"}, {"number"}, {"(", "expr", ")"},
     {"sign", "digit", "numbertail"}, {"digit", "numbertail"}, {"%"}, {"+"}, {"-"}, {"%"}, {"0"}, {"1"},
-    {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}, {"d"}, {"e"}};
+    {"2"}, {"3"}, {"4"}, {"5"}, {"6"}, {"7"}, {"8"}, {"9"}, {"a"}, {"b"}, {"c"}};
 
 int main(){
     
