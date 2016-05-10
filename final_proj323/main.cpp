@@ -229,7 +229,7 @@ string varType(vector<string> line) {
             break;
         hllString += line[i];
     }
-    hllString += ";";
+    hllString += ";\n";
     
     
     return hllString;
